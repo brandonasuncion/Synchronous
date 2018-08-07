@@ -1,16 +1,19 @@
 {
-    "name": "TimeSync",
+    "manifest_version": 2,
+    "name": "Synchronous",
     "version": "1.0",
     "description": "Sync and watch videos with others!",
     "content_scripts": [
         {
             "matches": ["http://www.crunchyroll.com/*"],
             "run_at": "document_idle",
-            "js": ["socket.io.js", "synchronous.js"]
+            "js": [
+                "socket.io.js", 
+                "synchronous.js"
+            ]
         }
     ],
-    "page_action": {
+    "browser_action": {
         "default_popup": "popup.html"
-    },
-    "manifest_version": 2
+    }
 }

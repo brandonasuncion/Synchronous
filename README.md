@@ -1,1 +1,1 @@
-# TimeSync
+# Synchronous
