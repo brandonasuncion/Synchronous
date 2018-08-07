@@ -2,83 +2,104 @@
 
 const SYNC_SERVER = "http://127.0.0.1/"
 
-var roomID = "hello";
+window.synchronous = {};
+window.synchronous.syncVideo = function(roomID) {
+    
+    var socket = io(SYNC_SERVER);
 
-console.log("Synchronous Started");
+    // Send room name once connected
+    socket.on('connect', function() {
+        console.log('Connecting to', roomID);
+        socket.emit('room', roomID);
+    });
 
-// var socket = io();
-var socket = io(SYNC_SERVER);
-// var socket = io.connect(SYNC_SERVER);
-
-
-// io.on('connection', function(socket){
-//     socket.join('hello');
-//     console.log('Joining hello');
-
-//     setInterval(function() {
-//         //socket
-//         //socket.emit('sync', {time: new Date})
-//         io.to('hello').emit('sync', {time: new Date});
-//     }, 1000);
-
-
-// });
-
-
-socket.on('connect', function() {
-    //socket.join('hello');
-    socket.emit('room', roomID);
-});
-
-
-socket.on('host', function() {
-    console.log("Hosting:", roomID)
-
-    setInterval(function() {
-        //socket
+    // Client is the host of the room
+    socket.on('host', function() {
+        console.log("Hosting:", roomID)
 
         var video = document.querySelector('video');
+        if (video == null) { return; }
 
-        if (video != null) {
+        var lastSentData = {};
+        var updateStatus = function() {
             var data = {
                 room: roomID,
                 videoTime: video.currentTime,
-                paused: video.paused,
-                timestamp: new Date
+                paused: video.paused || video.seeking,
+                timestamp: new Date()
             };
-    
+
+            // Cancel sending an update if it is redundant
+            if (lastSentData.room == data.room && lastSentData.videoTime == data.videoTime && lastSentData.paused == data.paused) {
+                return;
+            }
+            lastSentData = data;
+
             socket.emit('sync', data);
-        }
+            console.log(data);
+        };
 
-    }, 1000);
-});
 
-socket.on('guest', function() {
-    console.log("Joining:", roomID);
-});
+        video.addEventListener("play", updateStatus);
+        video.addEventListener("pause", updateStatus);
+        video.addEventListener("seeking", updateStatus);
+        video.addEventListener("seeked", updateStatus);
+        video.addEventListener("suspend", updateStatus);
 
-socket.on('sync', function(data) {
-    console.log("Received sync:", data);
-    if (data['room'] != roomID) { return; }
+        updateStatus();
+    });
 
-    var video = document.querySelector('video');
+    // Client is a guest of the room; Update using the last recorded timestamp
+    socket.on('guest', function(data) {
+        console.log("Joining:", data['room']);
 
-    if (video != null) {
+        if (data['room'] != roomID) { return; }
 
-        if (Math.abs(video.currentTime - data['videoTime']) > 1) {
+        var video = document.querySelector('video');
+        if (video == null) { return; }
+
+
+        if (data['paused']) {
+            video.pause();
             video.currentTime = data['videoTime'];
+
+        } else {
+
+            // TODO: Convert timestamp from server time to local time
+
+            var now = new Date();
+            var timestamp = new Date(data['timestamp']);
+            var timeDelta = (now - timestamp) / 1000;
+            video.currentTime = data['videoTime'] + timeDelta;
+
+            video.play();
+            console.log("PLAYING");
         }
+    });
+
+    // Guest receives a sync event; Update player to match host's player
+    socket.on('sync', function(data) {
+        // console.log("Received sync:", data);
+        if (data['room'] != roomID) { return; }
+
+        var video = document.querySelector('video');
+        if (video == null) { return; }
 
         if (video.paused != data['paused']) {
+            
             if (data['paused']) {
                 video.pause();
                 console.log("PAUSED");
             } else {
+                video.currentTime = data['videoTime'];
                 video.play();
                 console.log("PLAYING");
             }
 
+        } else if (Math.abs(video.currentTime - data['videoTime']) > 1) {
+            video.currentTime = data['videoTime'];
         }
-    }
 
-});
+    });
+
+}

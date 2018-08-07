@@ -1,16 +1,45 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <style>
-            button {
-                height: 30px;
-                width: 30px;
-                outline: none;
-            }
-        </style>
-    </head>
-    <body>
-        <h1>TimeSync</h1>
-        <button id="changeColor">Test</button>
-    </body>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="author" content="Brandon Asuncion">
+
+	<title>Synchronous</title>
+
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="container-fluid">
+	<div class="row">
+		<div class="col-md-12">
+			<h3 class="text-muted">
+				Synchronous
+			</h3>
+			<form role="form">
+				<div class="form-group">
+					 
+					<label for="room">
+						Room
+					</label>
+					<input type="text" class="form-control" id="room">
+				</div>
+				<button class="btn btn-primary" id="joinRoomBtn">
+					connect
+				</button>
+				<div class="form-group">
+					
+					<label>
+						Not connected
+					</label>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/popup.js"></script>
+  </body>
 </html>

@@ -3,6 +3,7 @@
     "name": "Synchronous",
     "version": "1.0",
     "description": "Sync and watch videos with others!",
+    "permissions": ["activeTab", "declarativeContent"],
     "content_scripts": [
         {
             "matches": ["http://www.crunchyroll.com/*"],

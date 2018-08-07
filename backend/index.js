@@ -25,19 +25,15 @@ function handler (req, res) {
     });
 }
 
+var lastBroadcastedData = {};
+
 io.on('connection', function (socket) {
 
     console.log('New connection');
-//     setInterval(function() {
-//         //socket
-//         //socket.emit('sync', {time: new Date})
-//         io.to('hello').emit('sync', {time: new Date});
-//     }, 1000);
+
     socket.emit('news', { hello: 'world' });
 
-    // socket.on('my other event', function (data) {
-    //     console.log(data);
-    // });
+
 
     socket.on('room', function(room) {
         socket.room = room;
@@ -48,9 +44,12 @@ io.on('connection', function (socket) {
             socket.isHost = true;
             socket.emit("host", { room: room });
         } else {
+
             console.log("Guest joining: ", room)
             socket.isHost = false;
-            socket.emit("guest", { room: room });
+            //socket.emit("guest", { room: room });
+            let lastPacket = lastBroadcastedData[room];
+            socket.emit("guest", lastPacket);
         }
     });
 
@@ -63,10 +62,23 @@ io.on('connection', function (socket) {
     // });
 
     socket.on('sync', function(data) {
-        // console.log("Broadcasting time " + data['time'] + " to " + data['room']);
         if (socket.isHost) {
+
+            // TODO: Convert timestamp to server time
+            lastBroadcastedData[socket.room] = data;
+
             socket.broadcast.emit('sync', data);
         }
     });
+
+    // if (socket.lastDataBroadcasted != null) {
+    //     socket.emit('update', socket.lastDataBroadcasted);
+    //     // if (socket.lastDataBroadcasted['paused']) {
+    //     //     socket.emit('sync', socket.lastDataBroadcasted);
+    //     // } else {
+
+    //     // }
+    // }
+
 
 });
