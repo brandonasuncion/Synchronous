@@ -1,24 +1,54 @@
 'use strict';
 
-const SYNC_SERVER = "http://127.0.0.1/"
+var synchronous = {};
+window.synchronous = synchronous;
+synchronous.syncServer = "http://127.0.0.1/";
 
-window.synchronous = {};
-window.synchronous.syncVideo = function(roomID) {
+synchronous.room = null;
+synchronous.statusText = null;
+synchronous.isHost = false;
+
+synchronous.updateStatus = function(status) {
+    this.statusText = status;
+    chrome.runtime.sendMessage({ statusUpdate: status }, function(response) { });
+};
+
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    // console.log("STATUS REQUEST");
+    if (request.action == "requestStatus")
+        sendResponse({
+            room: synchronous.room,
+            statusText: synchronous.statusText
+        });
+});
+
+
+synchronous.syncVideo = function(roomID) {
     
-    var socket = io(SYNC_SERVER);
+    this.room = roomID;
+
+    console.log('Connecting to', roomID);
+    var socket = io(this.syncServer);
 
     // Send room name once connected
     socket.on('connect', function() {
-        console.log('Connecting to', roomID);
         socket.emit('room', roomID);
+        synchronous.updateStatus("Connected to " + roomID);
     });
 
     // Client is the host of the room
     socket.on('host', function() {
-        console.log("Hosting:", roomID)
-
         var video = document.querySelector('video');
-        if (video == null) { return; }
+        if (video == null) {
+            synchronous.updateStatus("No video available");
+            socket.disconnect(true);
+            return;
+        }
+
+        console.log("Hosting:", roomID);
+
+        synchronous.isHost = true;
+        synchronous.updateStatus("Hosting: " + roomID);
 
         var lastSentData = {};
         var updateStatus = function() {
@@ -39,7 +69,6 @@ window.synchronous.syncVideo = function(roomID) {
             console.log(data);
         };
 
-
         video.addEventListener("play", updateStatus);
         video.addEventListener("pause", updateStatus);
         video.addEventListener("seeking", updateStatus);
@@ -51,9 +80,12 @@ window.synchronous.syncVideo = function(roomID) {
 
     // Client is a guest of the room; Update using the last recorded timestamp
     socket.on('guest', function(data) {
+        if (data['room'] != roomID) { return; }
+
         console.log("Joining:", data['room']);
 
-        if (data['room'] != roomID) { return; }
+        synchronous.isHost = false;
+        synchronous.updateStatus("Connected: " + roomID);
 
         var video = document.querySelector('video');
         if (video == null) { return; }

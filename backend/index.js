@@ -29,13 +29,12 @@ var lastBroadcastedData = {};
 
 io.on('connection', function (socket) {
 
-    console.log('New connection');
-
-    socket.emit('news', { hello: 'world' });
-
-
-
     socket.on('room', function(room) {
+        if (room == null || room === "") {
+            socket.disconnect(true);
+            return;
+        }
+
         socket.room = room;
         socket.join(room);
         //console.log(io.sockets.adapter.rooms);

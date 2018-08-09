@@ -5,10 +5,7 @@
     "description": "Sync and watch videos with others!",
     "permissions": ["activeTab", "declarativeContent"],
     "background": {
-        "scripts": [
-            "background.js"
-        ],
-        "persistent": false
+        "scripts": ["background.js"]
     },
     "content_scripts": [
         {
@@ -20,7 +17,7 @@
             ]
         }
     ],
-    "browser_action": {
+    "page_action": {
         "default_popup": "popup.html"
     }
 }

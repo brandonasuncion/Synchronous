@@ -11,12 +11,15 @@
     "type": "git",
     "url": "git+https://github.com/brandonasuncion/Synchronous.git"
   },
-  "author": "",
+  "author": "Brandon Asuncion <me@brandonasuncion.tech> (https://brandonasuncion.tech)",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/brandonasuncion/Synchronous/issues"
   },
   "homepage": "https://github.com/brandonasuncion/Synchronous#readme",
+  "engines": {
+    "node": "7.4.0"
+  },
   "dependencies": {
     "express": "^4.16.3",
     "socket.io": "^2.1.1"
