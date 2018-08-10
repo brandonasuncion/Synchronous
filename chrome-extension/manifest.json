@@ -2,7 +2,7 @@
     "manifest_version": 2,
     "name": "Synchronous",
     "version": "1.0",
-    "description": "Sync and watch videos with others!",
+    "description": "Watch videos with others!",
     "permissions": ["activeTab", "declarativeContent"],
     "background": {
         "scripts": [
@@ -12,7 +12,7 @@
     },
     "content_scripts": [
         {
-            "matches": ["http://www.crunchyroll.com/*"],
+            "matches": ["http://*/*", "https://*/*"],
             "run_at": "document_idle",
             "js": [
                 "socket.io.js", 

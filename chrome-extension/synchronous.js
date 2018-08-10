@@ -7,6 +7,7 @@ synchronous.syncServer = "http://127.0.0.1/";
 synchronous.room = null;
 synchronous.statusText = null;
 synchronous.isHost = false;
+synchronous.isPaused = false;
 
 synchronous.updateStatus = function(status) {
     this.statusText = status;
@@ -14,7 +15,6 @@ synchronous.updateStatus = function(status) {
 };
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    // console.log("STATUS REQUEST");
     if (request.action == "requestStatus")
         sendResponse({
             room: synchronous.room,
@@ -36,6 +36,15 @@ synchronous.syncVideo = function(roomID) {
         synchronous.updateStatus("Connected to " + roomID);
     });
 
+    socket.on('connect_error', function() {
+        synchronous.updateStatus("Cannot connect to server");
+    });
+
+    socket.on('disconnect', function(reason) {
+        synchronous.updateStatus("Disconnected");
+        console.log("Disconnected", reason)
+    });
+
     // Client is the host of the room
     socket.on('host', function() {
         var video = document.querySelector('video');
@@ -51,11 +60,13 @@ synchronous.syncVideo = function(roomID) {
         synchronous.updateStatus("Hosting: " + roomID);
 
         var lastSentData = {};
-        var updateStatus = function() {
+        var updateStatus = function(paused) {
             var data = {
                 room: roomID,
                 videoTime: video.currentTime,
-                paused: video.paused || video.seeking,
+                // paused: paused == null ? video.paused || video.seeking || video.playbackRate == 0 : paused,
+                // paused: video.playbackRate == 0,
+                paused: video.paused || video.seeking || video.playbackRate == 0,
                 timestamp: new Date()
             };
 
@@ -69,11 +80,15 @@ synchronous.syncVideo = function(roomID) {
             console.log(data);
         };
 
-        video.addEventListener("play", updateStatus);
+        // video.addEventListener("play", updateStatus);
+        video.addEventListener("playing", updateStatus);
         video.addEventListener("pause", updateStatus);
+
+        // video.addEventListener("ratechange", updateStatus);
+
         video.addEventListener("seeking", updateStatus);
         video.addEventListener("seeked", updateStatus);
-        video.addEventListener("suspend", updateStatus);
+        video.addEventListener("waiting", updateStatus);
 
         updateStatus();
     });
@@ -116,10 +131,11 @@ synchronous.syncVideo = function(roomID) {
 
         var video = document.querySelector('video');
         if (video == null) { return; }
+        synchronous.isPaused = data['paused'];
 
-        if (video.paused != data['paused']) {
+        if (video.paused != synchronous.isPaused) {
             
-            if (data['paused']) {
+            if (synchronous.isPaused) {
                 video.pause();
                 console.log("PAUSED");
             } else {
@@ -131,6 +147,23 @@ synchronous.syncVideo = function(roomID) {
         } else if (Math.abs(video.currentTime - data['videoTime']) > 1) {
             video.currentTime = data['videoTime'];
         }
+
+        // video.currentTime = data['videoTime'];
+        // let updateStateIfNeeded = () => {
+        //     if (video.paused != synchronous.isPaused) {
+            
+        //         if (synchronous.isPaused) {
+        //             video.pause();
+        //             console.log("PAUSED");
+        //         } else {
+                    
+        //             video.play().then(updateStateIfNeeded);
+        //             console.log("PLAYING");
+        //         }
+    
+        //     }
+        // };
+        // updateStateIfNeeded();
 
     });
 
