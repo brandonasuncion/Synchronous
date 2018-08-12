@@ -5,6 +5,8 @@
     Brandon Asuncion <me@brandonasuncion.tech>
 */
 
+const PORT = process.env.PORT || 80;
+
 var http = require("http");
 var express = require("express");
 var app = express();
@@ -12,7 +14,7 @@ var app = express();
 app.use(express.static(__dirname + "/public/"));
 
 var server = http.createServer(app);
-server.listen(80);
+server.listen(PORT);
 
 var io = require('socket.io')(server);
 
