@@ -42,8 +42,17 @@ chrome.runtime.onMessage.addListener(
     }
 );
 
+updateStatusText();
+
 // chrome.browserAction.onClicked.addListener(function(e) {
 //     updateStatusText();
 // });
 
-updateStatusText();
+
+function joinRoomInNewTab(room, url) {
+    chrome.tabs.create({"url": url}, function(tab) {
+        chrome.tabs.executeScript(tab.id, {
+            code: "window.synchronous.syncVideo('" + room + "');"
+        });
+    });
+}
