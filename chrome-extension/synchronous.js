@@ -2,7 +2,8 @@
 
 var synchronous = {};
 window.synchronous = synchronous;
-synchronous.syncServer = "http://127.0.0.1/";
+// synchronous.syncServer = "http://127.0.0.1/";
+synchronous.syncServer = "https://sync-.herokuapp.com/";
 
 synchronous.room = null;
 synchronous.statusText = null;

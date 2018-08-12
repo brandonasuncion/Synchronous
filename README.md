@@ -10,3 +10,6 @@ Work in progress.
 
 ## Credits
 [Brandon Asuncion](mailto:me@brandonasuncion.tech)
+
+## License
+[MIT License](https://choosealicense.com/licenses/mit/)
