@@ -1,29 +1,20 @@
-// const PORT = process.env.PORT || 3001;
+/*
+    Synchronous
+    index.js
 
+    Brandon Asuncion <me@brandonasuncion.tech>
+*/
 
-// var http = require("http");
-// var express = require("express");
-// var app = express();
+var http = require("http");
+var express = require("express");
+var app = express();
 
+app.use(express.static(__dirname + "/public/"));
 
-var app = require('http').createServer(handler)
-var io = require('socket.io')(app);
-var fs = require('fs');
+var server = http.createServer(app);
+server.listen(80);
 
-app.listen(80);
-
-function handler (req, res) {
-    fs.readFile(__dirname + '/index.html',
-    function (err, data) {
-        if (err) {
-            res.writeHead(500);
-            return res.end('Error loading index.html');
-        }
-
-        res.writeHead(200);
-        res.end(data);
-    });
-}
+var io = require('socket.io')(server);
 
 var lastBroadcastedData = {};
 
