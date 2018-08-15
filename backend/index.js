@@ -41,6 +41,8 @@ io.on('connection', function(socket) {
             socket.isHost = false;
 
             let lastPacket = lastBroadcastedData[room];
+            lastPacket.serverTime = Date.now();
+
             socket.emit("guest", lastPacket);
         }
     });
@@ -48,7 +50,16 @@ io.on('connection', function(socket) {
     socket.on('sync', function(data) {
         if (socket.isHost) {
             
-            // TODO: Convert timestamp to server time
+            // Convert timestamp to server time
+            // https://en.wikipedia.org/wiki/Network_Time_Protocol#Clock_synchronization_algorithm
+            let now = Date.now();
+            let clientTime = data.timestamp || now;
+            let timeOffset = (now - clientTime) / 2;
+            let serverTime = new Date(now - timeOffset);
+
+            data.clientTime = clientTime;       // NOTE: remove later
+            data.timestamp = serverTime;
+
             lastBroadcastedData[socket.room] = data;
 
             socket.broadcast.emit('sync', data);

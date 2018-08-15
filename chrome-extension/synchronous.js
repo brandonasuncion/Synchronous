@@ -9,6 +9,7 @@ synchronous.isActive = false;
 synchronous.statusText = null;
 synchronous.isHost = false;
 synchronous.isPaused = false;
+synchronous.latency = 0;
 
 synchronous.updateStatus = function(status) {
     this.statusText = status;
@@ -79,7 +80,7 @@ synchronous.syncVideo = function(roomID) {
             lastSentData = data;
 
             socket.emit('sync', data);
-            console.log(data, video.readyState);
+            console.log(data, synchronous.latency);
 
         };
 
@@ -115,12 +116,25 @@ synchronous.syncVideo = function(roomID) {
 
         } else {
 
-            // TODO: Convert timestamp from server time to local time
+            // Convert timestamp from server time to local time
+            // https://en.wikipedia.org/wiki/Network_Time_Protocol#Clock_synchronization_algorithm
 
-            var now = new Date();
-            var timestamp = new Date(data['timestamp']);
-            var timeDelta = (now - timestamp) / 1000;
-            video.currentTime = data['videoTime'] + timeDelta;
+            let now = new Date();
+            let timestamp = new Date(data.timestamp);
+            let latencyAdjustment = (data.serverTime - now) / 2;
+            print(latencyAdjustment)
+
+
+            var timeDelta = (now - timestamp + latencyAdjustment) / 1000;
+            // var timeDelta = (now - timestamp - synchronous.latency / 2) / 1000;
+            video.currentTime = data.videoTime + timeDelta;
+
+            // var now = new Date();
+            // var timestamp = new Date(data['timestamp']);
+            
+            // var timeDelta = (now - timestamp) / 1000;
+            // // var timeDelta = (now - timestamp - synchronous.latency / 2) / 1000;
+            // video.currentTime = data['videoTime'] + timeDelta;
 
             // video.play();
             // console.log("PLAYING");
@@ -180,12 +194,12 @@ synchronous.syncVideo = function(roomID) {
         // };
         // updateStateIfNeeded();
 
+    });
 
 
-
-        
-
-
+    socket.on('pong', (latency) => {
+        // console.log("PONG", latency);
+        synchronous.latency = latency;
     });
 
 };
@@ -219,5 +233,5 @@ synchronous.updatePlayPauseStatus = function() {
             // this.updatePlayPauseStatus();
         }
     }
-
+    
 };
