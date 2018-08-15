@@ -52,14 +52,15 @@ io.on('connection', function(socket) {
             
             // Convert timestamp to server time
             // https://en.wikipedia.org/wiki/Network_Time_Protocol#Clock_synchronization_algorithm
-            let now = Date.now();
-            let clientTime = data.timestamp || now;
-            let timeOffset = (now - clientTime) / 2;
-            let serverTime = new Date(now - timeOffset);
+            // let now = Date.now();
+            // let clientTime = new Date(data.timestamp);
+            // let timeOffset = (now - clientTime) / 2;
+            // let serverTime = new Date(now - timeOffset);
 
-            data.clientTime = clientTime;       // NOTE: remove later
-            data.timestamp = serverTime;
+            // // data.clientTime = clientTime;
+            // data.timestamp = serverTime;
 
+            data.timestamp = Date.now();
             lastBroadcastedData[socket.room] = data;
 
             socket.broadcast.emit('sync', data);

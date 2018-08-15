@@ -4,6 +4,7 @@ var synchronous = window.synchronous || {};
 window.synchronous = synchronous;
 synchronous.syncServer = "https://sync-.herokuapp.com/";
 
+synchronous.socket = null;
 synchronous.room = null;
 synchronous.isActive = false;
 synchronous.statusText = null;
@@ -32,7 +33,8 @@ synchronous.syncVideo = function(roomID) {
     this.room = roomID;
 
     synchronous.updateStatus("Connecting to " + roomID);
-    var socket = io(this.syncServer);
+    let socket = io(this.syncServer);
+    this.socket = socket;
 
     // Send room name once connected
     socket.on('connect', function() {
@@ -70,7 +72,7 @@ synchronous.syncVideo = function(roomID) {
                 // paused: paused == null ? video.paused || video.seeking || video.playbackRate == 0 : paused,
                 // paused: video.playbackRate == 0,
                 paused: video.paused || video.seeking || video.playbackRate == 0,
-                timestamp: new Date()
+                timestamp: Date.now()
             };
 
             // Cancel sending an update if it is redundant
@@ -108,6 +110,9 @@ synchronous.syncVideo = function(roomID) {
 
         var video = document.querySelector('video');
         if (video == null) { return; }
+
+        video.addEventListener("seeked", function() { synchronous.updatePlayPauseStatus() });
+
         synchronous.isPaused = data['paused'];
 
         if (data['paused']) {
@@ -119,30 +124,52 @@ synchronous.syncVideo = function(roomID) {
             // Convert timestamp from server time to local time
             // https://en.wikipedia.org/wiki/Network_Time_Protocol#Clock_synchronization_algorithm
 
-            let now = new Date();
+            // let now = Date.now();
+            // let timestamp = new Date(data.timestamp);
+            // let latencyAdjustment = (data.serverTime - now) / 2;
+            // console.log(latencyAdjustment)
+
+            // let serverTime = new Date(data.serverTime);
+            // console.log(timestamp, serverTime);
+            // var timeDelta = latencyAdjustment / 1000;
+
+
+
+
+            // let timeOffset = (now - data.serverTime) / 2;       // Offset determined by clock synchronization
+            // let timeDelta = timeOffset / 1000;
+            // // console.log(timestamp);
+            // console.log(timeDelta);
+
+            // let elapsedTime = (now - timestamp) / 1000;
+            // // var timeDelta = (now - timestamp - synchronous.latency / 2) / 1000;
+            // video.currentTime = data.videoTime + timeDelta + elapsedTime;
+
+            let serverTime = new Date(data.serverTime);
             let timestamp = new Date(data.timestamp);
-            let latencyAdjustment = (data.serverTime - now) / 2;
-            print(latencyAdjustment)
 
+            let elapsedTime = serverTime - timestamp;
+            let timeDelta = elapsedTime / 1000;
 
-            var timeDelta = (now - timestamp + latencyAdjustment) / 1000;
-            // var timeDelta = (now - timestamp - synchronous.latency / 2) / 1000;
             video.currentTime = data.videoTime + timeDelta;
 
-            // var now = new Date();
+
+
+            // var now = Date.now();
             // var timestamp = new Date(data['timestamp']);
             
             // var timeDelta = (now - timestamp) / 1000;
             // // var timeDelta = (now - timestamp - synchronous.latency / 2) / 1000;
             // video.currentTime = data['videoTime'] + timeDelta;
 
-            // video.play();
-            // console.log("PLAYING");
+            // // video.play();
+            // // console.log("PLAYING");
             // synchronous.updatePlayPauseStatus();
+            // video.play();
         }
 
-        synchronous.updatePlayPauseStatus();
-        video.addEventListener("seeked", function() { synchronous.updatePlayPauseStatus() });
+        
+        
     });
 
     // Guest receives a sync event; Update player to match host's player
@@ -198,7 +225,7 @@ synchronous.syncVideo = function(roomID) {
 
 
     socket.on('pong', (latency) => {
-        // console.log("PONG", latency);
+        console.log("PONG", latency);
         synchronous.latency = latency;
     });
 
